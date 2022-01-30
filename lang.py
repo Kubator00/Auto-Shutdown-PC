@@ -2,7 +2,7 @@ class Languages:
     def __init__(self):
         self.availableLanguages = ["polish", "english"]
         self.currentLanguage = self.availableLanguages[1]
-        self.title = {"polish": "Automatyczne wyłączanie PC", "english": "Automatic Shut Down PC"}
+        self.title = {"polish": "Automatyczne wyłączanie PC", "english": "Auto Shutdown PC"}
         self.exit = {"polish": "Wyjście", "english": "Quit"}
         self.modes = {"polish": ["Twarde wyłączenie komputera", "Wyłącz komputer", "Uruchom Ponownie", "Wyloguj",
                                  "Hibernacja"], "english": ["Force shut down", "Shut down", "Reboot", "Logout",
@@ -10,18 +10,21 @@ class Languages:
         self.startCountdown = {"polish": "Uruchom odliczanie", "english": "Start countdown"}
         self.cancelCountdown = {"polish": "Anuluj odliczanie", "english": "Cancel countdown"}
         self.radioButtonInputType1 = {"polish": "CZAS DO WYKONANIA OPERACJI",
-                                      "english": "TIME TO EXECUTE OPERATION"}
+                                      "english": "Time from now"}
         self.radioButtonInputType2 = {"polish": "GODZINA WYKONANIA OPERACJI",
-                                      "english": "SPECIFIED TIME"}
+                                      "english": "Specified time"}
+        self.taskTitle = {"polish": "Zadanie:", "english": "Task:"}
         self.hour1 = {"polish": "Godzin:", "english": "Hours:"}
         self.minute1 = {"polish": "Minut:", "english": "Minutes:"}
         self.hour2 = {"polish": "Godzina:", "english": "Hour:"}
         self.minute2 = {"polish": "Minuta:", "english": "Minute:"}
         self.shutdown = {"polish": "wyłączenia komputera", "english": "shutdown"}
         self.reboot = {"polish": "uruchomienia ponownie ", "english": "reboot"}
-        self.logout = {"polish": "wylogowania ", "english": "reboot"}
+        self.logout = {"polish": "wylogowania", "english": "logout"}
         self.hibernate = {"polish": "hibernacji ", "english": "hibernate"}
-        self.timeTo = {"polish": "Czas do ", "english": "Time to "}
+        self.timeTo1 = {"polish": "Czas do", "english": "Computer will"}
+        self.timeTo2 = {"polish": "", "english": " in"}
+        self.author = {"polish": "Autor", "english": "Author"}
         self.executionTime = {"polish": "Czas wykonania operacji ", "english": "Execution time"}
         self.notificationTitle = {"polish": "Uwaga!", "english": "Warning!"}
         self.notificationMessage = {"polish": "Do wykonania operacji pozostało mniej niż 2 minuty",
@@ -41,6 +44,7 @@ class Languages:
                      "cancelCountdown": self.cancelCountdown,
                      "radioButtonInputType1": self.radioButtonInputType1,
                      "radioButtonInputType2": self.radioButtonInputType2,
+                     "taskTitle": self.taskTitle,
                      "hour1": self.hour1,
                      "minute1": self.minute1,
                      "hour2": self.hour2,
@@ -49,7 +53,9 @@ class Languages:
                      "reboot": self.reboot,
                      "logout": self.logout,
                      "hibernate": self.hibernate,
-                     "timeTo": self.timeTo,
+                     "timeTo1": self.timeTo1,
+                     "timeTo2": self.timeTo2,
+                     "author":  self.author,
                      "executionTime": self.executionTime,
                      "notificationTitle": self.notificationTitle,
                      "notificationMessage": self.notificationMessage,

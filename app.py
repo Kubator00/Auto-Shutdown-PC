@@ -9,7 +9,6 @@ from functools import partial
 from win10toast import ToastNotifier
 from lang import *
 
-
 ROOT_HEIGHT = 500
 ROOT_WIDTH = 800
 BG_COLOR = "#459CF5"
@@ -28,6 +27,7 @@ class App:
         self.labelTitle = Label(self.root, text=self.Langs.get("title"), font=(FONT, 19), bg=BG_COLOR)
         self.labelTitle.place(relx=0.5, rely=0.08, anchor=CENTER)
         # buttons && inputs
+        self.labelOperationTitle = None
         self.radioButtonInputType = []
         self.timeMode = IntVar()
         self.InputType = {"timeTo": {}, "specifiedTime": {}}
@@ -45,6 +45,10 @@ class App:
         self.displayedNotification = False
         self.labelCounterTitle = Label(self.root, text="", font=(FONT, 15), bg=BG_COLOR)
         self.labelCounter = Label(self.root, text=self.remaining_time_to_end(), font=(FONT, 25), bg=BG_COLOR)
+
+        self.labelAuthor = Label(self.root, text=f"{self.Langs.get('author')}: Jakub Więcek", font=(FONT, 10),
+                                 bg=BG_COLOR)
+        self.labelAuthor.place(x=640, y=470)
 
     def win_init(self):
         self.root.geometry(str(ROOT_WIDTH) + 'x' + str(ROOT_HEIGHT))
@@ -102,6 +106,8 @@ class App:
         self.InputType["specifiedTime"]["entryMin"].place(x=205, y=200)
 
     def radio_button_operation_type_init(self):
+        self.labelOperationTitle = Label(self.root, text=self.Langs.get("taskTitle"), bg=BG_COLOR)
+        self.labelOperationTitle.place(x=350, y=75)
         MODES = self.Langs.get("modes")
         i = 0
         for text in MODES:
@@ -185,7 +191,7 @@ class App:
     def draw_counter_title(self):
         self.labelCounterTitle.place_forget()
         self.labelCounterTitle = Label(self.root,
-                                       text=self.Langs.get("timeTo") + str(self.operation_name()) + ": ",
+                                       text=f"{self.Langs.get('timeTo1')} {str(self.operation_name())}{self.Langs.get('timeTo2')}:",
                                        font=(FONT, 15), bg=BG_COLOR)
         self.labelCounterTitle.place(x=15, y=280)
         self.labelHourEndTitle = Label(self.root, text=self.Langs.get("executionTime"), font=(FONT, 15),
@@ -250,6 +256,7 @@ class App:
     def change_language(self, langName):
         self.Langs.change_language(langName)
         self.labelTitle.config(text=self.Langs.get("title"))
+        self.labelOperationTitle.config(text=self.Langs.get("taskTitle"))
         MODES = self.Langs.get("modes")
         i = 0
         for text in MODES:
@@ -265,7 +272,9 @@ class App:
         self.InputType["timeTo"]["labelMin"].config(text=self.Langs.get("minute1"))
         self.InputType["specifiedTime"]["labelHour"].config(text=self.Langs.get("hour2"))
         self.InputType["specifiedTime"]["labelMin"].config(text=self.Langs.get("minute2"))
+        self.labelAuthor.config(text=f"{self.Langs.get('author')}: Jakub Więcek")
 
         if self.isActiveCountDown:
-            self.labelCounterTitle.config(text=self.Langs.get("timeTo") + str(self.operation_name()) + ": ")
+            self.labelCounterTitle.config(
+                text=f"{self.Langs.get('timeTo1')} {str(self.operation_name())}{self.Langs.get('timeTo2')}:")
             self.labelHourEndTitle.config(text=self.Langs.get("executionTime"))
