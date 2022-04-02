@@ -9,14 +9,26 @@ from functools import partial
 from win10toast import ToastNotifier
 from lang import *
 
-ROOT_HEIGHT = 500
-ROOT_WIDTH = 800
-BG_COLOR = "#459CF5"
+ROOT_HEIGHT = 440
+ROOT_WIDTH = 445
+BG_COLOR = "#E8E8E8"
 BUTTON_COLOR = "#F7B054"
-FONT = "ARIAL"
+FONT = "Calibri"
 
 
 class App:
+    firstColumnPositionX = 35
+    secondColumnPositionX = 250
+    labelCountdownMode = None
+    labelOperationTitle = None
+    radioButtonInputType = []
+    button = buttonStop = None
+    displayedNotification = False
+    isActiveCountDown = False
+    inputTime = {}
+    radioButtonOperationType = []
+    timeNow = timeEnd = drawTimeToEndActive = labelHourEndTitle = labelHourEnd = None
+
     def __init__(self):
         self.Langs = Languages()
         # general
@@ -24,31 +36,18 @@ class App:
         self.root = tkinter.Tk()
         self.win_init()
         self.menu_init()
-        self.labelTitle = Label(self.root, text=self.Langs.get("title"), font=(FONT, 19), bg=BG_COLOR)
+        # program title
+        self.labelTitle = Label(self.root, text=self.Langs.get("title"), font=(FONT, 22), bg=BG_COLOR)
         self.labelTitle.place(relx=0.5, rely=0.08, anchor=CENTER)
         # buttons && inputs
-        self.labelOperationTitle = None
-        self.radioButtonInputType = []
         self.timeMode = IntVar()
-        self.InputType = {"timeTo": {}, "specifiedTime": {}}
-        self.radio_button_input_type_init()
-
-        self.buttonRun = self.buttonStop = self.buttonExit = None
-        self.button_init()
-
         self.modeChoice = IntVar()
-        self.radioButtonOperationType = []
+        self.radio_button_input_type_init()
         self.radio_button_operation_type_init()
-
+        self.button_init()
         # counter
-        self.isActiveCountDown = self.timeNow = self.timeEnd = self.drawTimeToEndActive = self.labelHourEndTitle = self.labelHourEnd = None
-        self.displayedNotification = False
         self.labelCounterTitle = Label(self.root, text="", font=(FONT, 15), bg=BG_COLOR)
         self.labelCounter = Label(self.root, text=self.remaining_time_to_end(), font=(FONT, 25), bg=BG_COLOR)
-
-        self.labelAuthor = Label(self.root, text=f"{self.Langs.get('author')}: Jakub Więcek", font=(FONT, 10),
-                                 bg=BG_COLOR)
-        self.labelAuthor.place(x=640, y=470)
 
     def win_init(self):
         self.root.geometry(str(ROOT_WIDTH) + 'x' + str(ROOT_HEIGHT))
@@ -57,69 +56,51 @@ class App:
         self.root.configure(bg=BG_COLOR)
 
     def button_init(self):
-        self.buttonRun = Button(self.root, text=self.Langs.get("startCountdown"), pady=15, width=22, fg="black",
-                                bg=BUTTON_COLOR,
-                                command=self.set_time_mode)
-        self.buttonRun.place(x=600, y=100)
-
-        self.buttonStop = Button(self.root, text=self.Langs.get("cancelCountdown"), pady=15, width=22, fg="black",
-                                 bg=BUTTON_COLOR,
-                                 command=self.stop_counter)
-        self.buttonStop.place(x=600, y=200)
-
-        self.buttonExit = Button(self.root, text=self.Langs.get("exit"), pady=15, width=22, fg="black", bg=BUTTON_COLOR,
-                                 command=self.quit)
-        self.buttonExit.place(x=600, y=300)
+        self.button = Button(self.root, text=self.Langs.get("startCountdown"), pady=10, padx=0, width=17, fg="white",
+                             font=(FONT, 12), bg="#10B13D", borderwidth=0, command=self.activate_countdown)
+        self.button.place(x=self.secondColumnPositionX + 2, y=230)
 
     def radio_button_input_type_init(self):
+        self.labelCountdownMode = Label(self.root, text=self.Langs.get("countdownMode"), font=(FONT, 11),
+                                        bg=BG_COLOR)
+        self.labelCountdownMode.place(x=self.secondColumnPositionX, y=85)
         self.radioButtonInputType.append(
             Radiobutton(self.root, text=self.Langs.get("radioButtonInputType1"), variable=self.timeMode, value=0,
-                        bg=BG_COLOR))
-        self.radioButtonInputType[0].place(x=15, y=80)
-        self.InputType["timeTo"]["labelHour"] = Label(self.root, text=self.Langs.get("hour1"), bg=BG_COLOR)
-        self.InputType["timeTo"]["labelHour"].place(x=15, y=120)
-        self.InputType["timeTo"]["entryHour"] = Entry(self.root, width=5, borderwidth=3)
-        self.InputType["timeTo"]["entryHour"].insert(0, "1")
-        self.InputType["timeTo"]["entryHour"].place(x=90, y=120)
-
-        self.InputType["timeTo"]["labelMin"] = Label(self.root, text=self.Langs.get("minute1"), bg=BG_COLOR)
-        self.InputType["timeTo"]["labelMin"].place(x=140, y=120)
-        self.InputType["timeTo"]["entryMin"] = Entry(self.root, width=5, borderwidth=3)
-        self.InputType["timeTo"]["entryMin"].insert(0, "0")
-        self.InputType["timeTo"]["entryMin"].place(x=205, y=120)
+                        bg=BG_COLOR, font=(FONT, 10)))
+        self.radioButtonInputType.append(
+            Radiobutton(self.root, text=self.Langs.get("radioButtonInputType2"), variable=self.timeMode, value=1,
+                        bg=BG_COLOR, font=(FONT, 10)))
+        self.radioButtonInputType[0].place(x=self.secondColumnPositionX, y=120)
+        self.radioButtonInputType[1].place(x=self.secondColumnPositionX, y=155)
+        self.inputTime["label"] = Label(self.root, text=self.Langs.get("time"), bg=BG_COLOR, font=(FONT, 11))
+        self.inputTime["label"].place(x=self.secondColumnPositionX, y=190)
+        self.inputTime["hour"] = Entry(self.root, width=5, font=(FONT, 10), borderwidth=1)
+        self.inputTime["hour"].insert(0, "1")
+        self.inputTime["hour"].place(x=self.secondColumnPositionX + 50, y=194)
+        Label(self.root, text=":", font=(FONT, 11), bg=BG_COLOR).place(x=self.secondColumnPositionX + 90, y=190)
+        self.inputTime["min"] = Entry(self.root, width=5, font=(FONT, 10), borderwidth=1)
+        self.inputTime["min"].insert(0, "0")
+        self.inputTime["min"].place(x=self.secondColumnPositionX + 103, y=194)
 
         self.radioButtonInputType.append(
             Radiobutton(self.root, text=self.Langs.get("radioButtonInputType2"), variable=self.timeMode, value=1,
                         bg=BG_COLOR))
-        self.radioButtonInputType[1].place(x=15, y=170)
-
-        self.InputType["specifiedTime"]["labelHour"] = Label(self.root, text=self.Langs.get("hour2"), bg=BG_COLOR)
-        self.InputType["specifiedTime"]["labelHour"].place(x=15, y=200)
-        self.InputType["specifiedTime"]["entryHour"] = Entry(self.root, width=5, borderwidth=3)
-        self.InputType["specifiedTime"]["entryHour"].insert(0, "1")
-        self.InputType["specifiedTime"]["entryHour"].place(x=90, y=200)
-
-        self.InputType["specifiedTime"]["labelMin"] = Label(self.root, text=self.Langs.get("minute2"), bg=BG_COLOR)
-        self.InputType["specifiedTime"]["labelMin"].place(x=140, y=200)
-        self.InputType["specifiedTime"]["entryMin"] = Entry(self.root, width=5, borderwidth=3)
-        self.InputType["specifiedTime"]["entryMin"].insert(0, "0")
-        self.InputType["specifiedTime"]["entryMin"].place(x=205, y=200)
 
     def radio_button_operation_type_init(self):
-        self.labelOperationTitle = Label(self.root, text=self.Langs.get("taskTitle"), bg=BG_COLOR)
-        self.labelOperationTitle.place(x=350, y=75)
+        self.labelOperationTitle = Label(self.root, text=self.Langs.get("taskTitle"), bg=BG_COLOR, font=(FONT, 11))
+        self.labelOperationTitle.place(x=self.firstColumnPositionX, y=85)
         MODES = self.Langs.get("modes")
         i = 0
         for text in MODES:
             self.radioButtonOperationType.append(
-                Radiobutton(self.root, text=text, variable=self.modeChoice, value=i, bg=BG_COLOR))
-            self.radioButtonOperationType[i].place(x=350, y=100 + i * 25)
+                Radiobutton(self.root, text=text, variable=self.modeChoice, value=i, bg=BG_COLOR, font=(FONT, 10)))
+            self.radioButtonOperationType[i].place(x=self.firstColumnPositionX - 2, y=115 + i * 35)
             i += 1
 
     def menu_init(self):
         menu = Menu(self.root)
-        self.root.config(menu=menu)
-        optionsMenu = Menu(menu, tearoff=0)
+        self.root.config(menu=menu, background=BG_COLOR)
+        optionsMenu = Menu(menu, tearoff=0, background=BG_COLOR)
         menu.add_cascade(label="Options", menu=optionsMenu)
         langMenu = Menu(menu, tearoff=0)
         optionsMenu.add_cascade(label="Language", menu=langMenu)
@@ -136,25 +117,16 @@ class App:
                 self.timeEnd = self.timeEnd + timedelta(minutes=1)
             self.timeEnd = self.timeEnd - timedelta(seconds=self.timeNow.second)
 
-    def set_time_mode(self):
-        if self.isActiveCountDown:
-            messagebox.showwarning(title=self.Langs.get("warningTitle"),
-                                   message=self.Langs.get("warningCancelCountDown"))
-            return
-        inputType = "timeTo"
-        if self.timeMode.get() == 1:
-            inputType = "specifiedTime"
-        self.activate_countdown(inputType)
-
-    def activate_countdown(self, inputType):
+    def activate_countdown(self):
         try:
-            hour = int(self.InputType[inputType]["entryHour"].get())
-            minute = int(self.InputType[inputType]["entryMin"].get())
+            hour = int(self.inputTime["hour"].get())
+            minute = int(self.inputTime["min"].get())
             if hour < 0 or minute < 0 or (hour == 0 and minute == 0) or hour > 23 or minute > 59:
                 messagebox.showwarning(title=self.Langs.get("warningTitle"),
                                        message=self.Langs.get("warningIncorrectInput"))
                 return
             self.isActiveCountDown = True
+            self.change_button()
             self.set_time_end(hour, minute)
             self.draw_counter()
             self.draw_execution_time()
@@ -167,9 +139,17 @@ class App:
                                    message=self.Langs.get("warningIncorrectInput"))
             return
 
-    def stop_counter(self):
-        if not self.isActiveCountDown:
+    def change_button(self):
+        if self.isActiveCountDown:
+            self.button['text'] = self.Langs.get("cancelCountdown")
+            self.button['command'] = self.stop_counter
+            self.button['bg'] = "#C7261C"
             return
+        self.button['text'] = self.Langs.get("startCountdown")
+        self.button['command'] = self.activate_countdown
+        self.button['bg'] = "#10B13D"
+
+    def stop_counter(self):
         self.isActiveCountDown = False
         self.timeEnd = None
         self.timeNow = None
@@ -180,23 +160,17 @@ class App:
         self.labelCounter.place_forget()
         self.labelHourEndTitle.place_forget()
         self.labelHourEnd.place_forget()
-
-    def draw_execution_time(self):
-        hour = self.timeEnd.hour
-        minutes = self.timeEnd.minute
-        self.labelHourEnd = Label(self.root, text=str(hour).zfill(2) + ":" + str(minutes).zfill(2), font=(FONT, 25),
-                                  bg=BG_COLOR)
-        self.labelHourEnd.place(x=15, y=390)
+        self.change_button()
 
     def draw_counter_title(self):
         self.labelCounterTitle.place_forget()
         self.labelCounterTitle = Label(self.root,
                                        text=f"{self.Langs.get('timeTo1')} {str(self.operation_name())}{self.Langs.get('timeTo2')}:",
-                                       font=(FONT, 15), bg=BG_COLOR)
-        self.labelCounterTitle.place(x=15, y=280)
-        self.labelHourEndTitle = Label(self.root, text=self.Langs.get("executionTime"), font=(FONT, 15),
+                                       font=(FONT, 14), bg=BG_COLOR)
+        self.labelCounterTitle.place(x=self.firstColumnPositionX, y=305)
+        self.labelHourEndTitle = Label(self.root, text=self.Langs.get("executionTime"), font=(FONT, 14),
                                        bg=BG_COLOR)
-        self.labelHourEndTitle.place(x=15, y=360)
+        self.labelHourEndTitle.place(x=self.firstColumnPositionX, y=365)
 
     def draw_counter(self):
         if not self.isActiveCountDown:
@@ -204,9 +178,16 @@ class App:
             self.labelCounter.place_forget()
             return
         self.labelCounter.place_forget()
-        self.labelCounter = Label(self.root, text=self.remaining_time_to_end(), font=(FONT, 25), bg=BG_COLOR)
-        self.labelCounter.place(x=15, y=310)
+        self.labelCounter = Label(self.root, text=self.remaining_time_to_end(), font=(FONT, 18), bg=BG_COLOR)
+        self.labelCounter.place(x=self.firstColumnPositionX, y=330)
         self.drawTimeToEndActive = self.root.after(1000, self.draw_counter)
+
+    def draw_execution_time(self):
+        hour = self.timeEnd.hour
+        minutes = self.timeEnd.minute
+        self.labelHourEnd = Label(self.root, text=str(hour).zfill(2) + ":" + str(minutes).zfill(2), font=(FONT, 18),
+                                  bg=BG_COLOR)
+        self.labelHourEnd.place(x=self.firstColumnPositionX, y=390)
 
     def remaining_time_to_end(self):
         if not self.isActiveCountDown:
@@ -250,31 +231,24 @@ class App:
         elif self.modeChoice.get() == 4:
             return self.Langs.get("hibernate")
 
-    def quit(self):
-        self.root.destroy()
-
     def change_language(self, langName):
         self.Langs.change_language(langName)
         self.labelTitle.config(text=self.Langs.get("title"))
+        self.labelCountdownMode.config(text=self.Langs.get("countdownMode"))
+        self.inputTime["label"].config(text=self.Langs.get("time"))
         self.labelOperationTitle.config(text=self.Langs.get("taskTitle"))
         MODES = self.Langs.get("modes")
         i = 0
         for text in MODES:
             self.radioButtonOperationType[i].config(text=text)
             i += 1
-
-        self.buttonRun.config(text=self.Langs.get("startCountdown"))
-        self.buttonStop.config(text=self.Langs.get("cancelCountdown"))
-        self.buttonExit.config(text=self.Langs.get("exit"))
         self.radioButtonInputType[0].config(text=self.Langs.get("radioButtonInputType1"))
         self.radioButtonInputType[1].config(text=self.Langs.get("radioButtonInputType2"))
-        self.InputType["timeTo"]["labelHour"].config(text=self.Langs.get("hour1"))
-        self.InputType["timeTo"]["labelMin"].config(text=self.Langs.get("minute1"))
-        self.InputType["specifiedTime"]["labelHour"].config(text=self.Langs.get("hour2"))
-        self.InputType["specifiedTime"]["labelMin"].config(text=self.Langs.get("minute2"))
-        self.labelAuthor.config(text=f"{self.Langs.get('author')}: Jakub Więcek")
 
         if self.isActiveCountDown:
             self.labelCounterTitle.config(
                 text=f"{self.Langs.get('timeTo1')} {str(self.operation_name())}{self.Langs.get('timeTo2')}:")
+            self.button.config(text=self.Langs.get("cancelCountdown"))
             self.labelHourEndTitle.config(text=self.Langs.get("executionTime"))
+        else:
+            self.button.config(text=self.Langs.get("startCountdown"))
